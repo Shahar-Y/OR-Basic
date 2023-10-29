@@ -1,0 +1,33 @@
+# docker-compose for the OneReport project
+# docker compose -f "docker-compose.yaml" up -d --build --force-recreate
+# Based on tutorial: https://blog.tericcabrel.com/mongodb-replica-set-docker-compose/
+# Run using ./startdb.sh
+# Connection string: mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=dbrs
+# hosts file:
+# 127.0.0.1   mongo1
+# 127.0.0.1   mongo2
+# 127.0.0.1   mongo3
+
+version: "3.8"
+
+services:
+  or-basic:
+    build: .
+    # image: or-basic:latest
+    container_name: or-basic
+    volumes:
+      - orbasicvol:/usr/src/app/data
+    restart: always
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    networks:
+      - mongors-network
+
+volumes:
+  db_config:
+  orbasicvol:
+networks:
+  mongors-network:
+    driver: bridge
