@@ -19,14 +19,9 @@ async function main() {
 
   const whatsappClient: Client = await connectToWhatsapp();
 
-  //   const WAContact: WAWebJS.ContactId = (await whatsappClient.getNumberId(
-  //     `972${config.testPhoneNumber.substring(1).trim()}@c.us`
-  //   )) as WAWebJS.ContactId;
-
-  //   const chat = await whatsappClient.getChatById(WAContact._serialized);
   // print date and time
   console.log(new Date().toLocaleString());
-  await getGroups(whatsappClient);
+  await printGroups(whatsappClient);
   for (const GM of GMArray) {
     console.log(GM);
     const groupChat = await whatsappClient.getChatById(GM.groupId);
@@ -41,10 +36,18 @@ async function main() {
 
 main();
 
-async function getGroups(whatsappClient: Client) {
-  let chats: WAWebJS.Chat[] = await whatsappClient.getChats();
+async function printGroups(whatsappClient: Client) {
+  let chats: any = await whatsappClient.getChats();
 
-  chats = chats.filter((chat) => chat.isGroup);
+  chats = chats.filter((chat: any) => chat.isGroup);
 
-  console.log(chats);
+  // save chat id and name
+  const shortChats = chats.map((chat: any) => {
+    return {
+      id: chat.id._serialized,
+      name: chat.groupMetadata?.subject,
+    };
+  });
+
+  console.log(shortChats);
 }

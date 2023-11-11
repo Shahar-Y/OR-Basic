@@ -8,7 +8,7 @@
 # 127.0.0.1   mongo2
 # 127.0.0.1   mongo3
 
-version: "3.8"
+version: "3"
 
 services:
   or-basic:

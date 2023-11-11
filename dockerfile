@@ -5,6 +5,7 @@
 
 FROM node:14-slim
 
+WORKDIR /usr/src/app
 # We don't need the standalone Chromium
 # ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
@@ -26,7 +27,6 @@ RUN apt-get update \
 RUN npm init -y &&  \
     npm i puppeteer 
 
-WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 COPY . .
