@@ -12,7 +12,6 @@ export type GroupMessage = {
 };
 
 const GMArray: GroupMessage[] = GMObjct.GMArray as GroupMessage[];
-console.log(GMArray);
 
 async function main() {
   console.log("Hello World");
