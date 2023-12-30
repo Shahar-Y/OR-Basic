@@ -4,7 +4,7 @@ import cron from "node-cron";
 import { connectToWhatsapp, runShamer } from "./whatsapp";
 import { Client } from "whatsapp-web.js";
 import GMObjct from "../groupMessages.env.json";
-import { getNonReporters } from "./googleSheets";
+import { config } from "../config";
 
 export type GroupMessage = {
   groupId: string;
@@ -18,6 +18,7 @@ const GMArray: GroupMessage[] = GMObjct.GMArray as GroupMessage[];
 
 async function main() {
   console.log("Last updated: 30-12-2023");
+  console.log(config);
   const whatsappClient: Client = await connectToWhatsapp();
 
   // print date and time
