@@ -8,7 +8,11 @@ const config = {
   chromePath: process.env.CHROME_PATH || "",
   spreadsheetId: process.env.SPREADSHEET_ID || "",
   sheetName: process.env.SHEET_NAME || "Sheet1",
-  sheetRange: process.env.SHEET_RANGE || "A1:B2",
+  sheetRange: process.env.SHEET_RANGE || "100",
+  sheetNameColumn: process.env.SHEET_NAME_COLUMN || "B",
+  sheetPhoneColumn: process.env.SHEET_PHONE_COLUMN || "C",
+  sheetStartDate: process.env.SHEET_START_DATE || "2023-10-16",
+  sheetStartDateColumn: process.env.SHEET_START_DATE_COLUMN || "F",
 };
 
 export { config };

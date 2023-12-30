@@ -2,6 +2,12 @@ import { google, Auth } from "googleapis";
 import credentials from "../credentials.json";
 import { config } from "../config";
 
+type Reporter = {
+  name: string;
+  location: string;
+  prevLocation: string;
+  phoneNumber: string;
+};
 /**
  * Load or request or authorization to call APIs.
  *
@@ -33,62 +39,144 @@ async function authorize() {
   return jwtClient;
 }
 
-async function getData(jwtClient: Auth.JWT): Promise<string[][]> {
+async function getAllReporters(jwtClient: Auth.JWT): Promise<Reporter[]> {
   const sheets = google.sheets({ version: "v4", auth: jwtClient });
 
-  const names = await sheets.spreadsheets.values.get({
+  const locationIdx = getNumOfDaysBetweenDates(
+    new Date(config.sheetStartDate),
+    new Date()
+  );
+  const locationCol = colIdxToLetter(
+    locationIdx + letterToColumnIdx(config.sheetStartDateColumn) - 1
+  );
+
+  const prevLocationCol = colIdxToLetter(
+    locationIdx + letterToColumnIdx(config.sheetStartDateColumn) - 2
+  );
+
+  console.log(
+    "locationCol",
+    locationCol,
+    "prevLocationCol",
+    prevLocationCol,
+    "locationIdx",
+    locationIdx
+  );
+
+  const locationsArray = await sheets.spreadsheets.values.get({
     spreadsheetId: config.spreadsheetId,
-    range: `${config.sheetName}!${config.sheetRange}`,
-    // range: "Sheet1!A1:B2",
+    range: `${config.sheetName}!${locationCol}2:${locationCol}${config.sheetRange}`,
   });
 
-  const
-  const rows = (res.data.values as string[][]) || [];
+  const prevLocationsArray = await sheets.spreadsheets.values.get({
+    spreadsheetId: config.spreadsheetId,
+    range: `${config.sheetName}!${prevLocationCol}2:${prevLocationCol}${config.sheetRange}`,
+  });
 
-  return rows;
-  // if (!rows || rows.length === 0) {
-  //   console.log("No data found.");
-  //   return;
-  // }
-  // console.log("Name, Major:");
-  // rows.forEach((row) => {
-  //   // Print columns A and E, which correspond to indices 0 and 4.
-  //   console.log(`${row[0]}, ${row[4]}`);
-  // });
+  const phoneNumbersArray = await sheets.spreadsheets.values.get({
+    spreadsheetId: config.spreadsheetId,
+    range: `${config.sheetName}!${config.sheetPhoneColumn}2:${config.sheetPhoneColumn}${config.sheetRange}`,
+  });
+
+  const namesArray = await sheets.spreadsheets.values.get({
+    spreadsheetId: config.spreadsheetId,
+    range: `${config.sheetName}!${config.sheetNameColumn}2:${config.sheetNameColumn}${config.sheetRange}`,
+  });
+
+  if (
+    !namesArray.data.values ||
+    !locationsArray.data.values ||
+    !prevLocationsArray.data.values
+  ) {
+    console.log(
+      "No data found: namesArray, locationsArray, prevLocationsArray, phoneNumbersArray (irrelevant)",
+      namesArray.data.values,
+      locationsArray.data.values,
+      prevLocationsArray.data.values,
+      phoneNumbersArray.data.values
+    );
+    return [];
+  }
+  const reportersObjArray: Reporter[] = [];
+  for (let i = 0; i < namesArray.data.values.length; i++) {
+    let phoneNumber = "";
+    if (
+      phoneNumbersArray &&
+      phoneNumbersArray.data &&
+      phoneNumbersArray.data.values &&
+      phoneNumbersArray.data.values[i]
+    ) {
+      phoneNumber = phoneNumbersArray.data.values[i][0];
+    }
+
+    reportersObjArray.push({
+      name: namesArray.data.values[i][0],
+      location: locationsArray.data.values[i]
+        ? locationsArray.data.values[i][0]
+        : "",
+      prevLocation: prevLocationsArray.data.values[i]
+        ? prevLocationsArray.data.values[i][0]
+        : "",
+      phoneNumber,
+    });
+  }
+
+  return reportersObjArray;
 }
 
-function getDaysBetweenDates(start: Date, end: Date) {
-  const days = [];
-  for (let d = start; d <= end; d.setDate(d.getDate() + 1)) {
-    days.push(new Date(d));
+function getNumOfDaysBetweenDates(start: Date, end: Date): number {
+  const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+  return Math.round(Math.abs((start.getTime() - end.getTime()) / oneDay));
+}
+
+function colIdxToLetter(colIdx: number) {
+  var temp,
+    letter = "";
+  while (colIdx > 0) {
+    temp = (colIdx - 1) % 26;
+    letter = String.fromCharCode(temp + 65) + letter;
+    colIdx = (colIdx - temp - 1) / 26;
   }
-  return days;
+  return letter;
+}
+
+function letterToColumnIdx(letter: string) {
+  var column = 0,
+    length = letter.length;
+  for (var i = 0; i < length; i++) {
+    column += (letter.charCodeAt(i) - 64) * Math.pow(26, length - i - 1);
+  }
+  return column;
 }
 
 export async function getSheetsData() {
   console.log("Hello Sheet Shamer!");
   console.log(config);
   let jwtClient: Auth.JWT;
-  let data: string[][] = [];
+  let reporters: Reporter[] = [];
   try {
     jwtClient = await authorize();
     if (!jwtClient) {
       console.log("auth is null");
       return;
     }
-    data = await getData(jwtClient);
+    reporters = await getAllReporters(jwtClient);
   } catch (err) {
     console.log("Error in authorization:", err);
   }
 
-  // parse data
-  const parsedData = data.map((row) => {
-    return {
-      idx: row[0],
-      name: row[1],
-      locationDates: row.slice(2, row.length),
-    };
-  }
+  return reporters;
+}
 
-  return data;
+export async function getNonReporters(): Promise<Reporter[]> {
+  const reporters = await getSheetsData();
+  if (!reporters) {
+    console.log("reporters is null");
+    return [];
+  }
+  console.log("Number of reporters: ", reporters.length);
+  const nonReporters = reporters.filter(
+    (reporter) => !reporter.location && reporter.prevLocation
+  );
+  return nonReporters;
 }
