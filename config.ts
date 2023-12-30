@@ -8,6 +8,7 @@ const config = {
   chromePath: process.env.CHROME_PATH || "",
   spreadsheetId: process.env.SPREADSHEET_ID || "",
   sheetName: process.env.SHEET_NAME || "Sheet1",
+  sheetRange: process.env.SHEET_RANGE || "A1:B2",
 };
 
 export { config };

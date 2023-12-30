@@ -1,5 +1,5 @@
 import WAWebJS, { Client, LocalAuth } from "whatsapp-web.js";
-import { config } from "./config";
+import { config } from "../config";
 import qrt from "qrcode-terminal";
 
 export async function connectToWhatsapp() {
