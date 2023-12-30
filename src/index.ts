@@ -1,20 +1,24 @@
+// SHIT: Sheets Helper Improvised Tyrant
+
 import cron from "node-cron";
-import { connectToWhatsapp } from "./whatsapp";
-import WAWebJS, { Client } from "whatsapp-web.js";
-import { config } from "./config";
+import { connectToWhatsapp, runShamer } from "./whatsapp";
+import { Client } from "whatsapp-web.js";
 import GMObjct from "../groupMessages.env.json";
+import { getNonReporters } from "./googleSheets";
 
 export type GroupMessage = {
   groupId: string;
   groupName: string;
   message: string;
   regex: string;
+  shamer?: string;
 };
 
 const GMArray: GroupMessage[] = GMObjct.GMArray as GroupMessage[];
 
 async function main() {
-  console.log("Hello World");
+  const data = await getNonReporters();
+  console.log(data);
 
   const whatsappClient: Client = await connectToWhatsapp();
 
@@ -27,12 +31,16 @@ async function main() {
     cron.schedule(GM.regex, async () => {
       console.log(new Date().toLocaleString());
       console.log(`sending message to ${GM.groupName} group`);
-      // await chat.sendMessage("message from cron job");
+
+      if (GM.shamer) {
+        runShamer(whatsappClient, groupChat, GM);
+        return;
+      }
+
       await groupChat.sendMessage(GM.message);
     });
   }
 }
-
 main();
 
 async function printGroups(whatsappClient: Client) {
