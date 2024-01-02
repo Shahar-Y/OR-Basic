@@ -47,11 +47,11 @@ async function getAllReporters(jwtClient: Auth.JWT): Promise<Reporter[]> {
     new Date()
   );
   const locationCol = colIdxToLetter(
-    locationIdx + letterToColumnIdx(config.sheetStartDateColumn) - 1
+    locationIdx + letterToColumnIdx(config.sheetStartDateColumn)
   );
 
   const prevLocationCol = colIdxToLetter(
-    locationIdx + letterToColumnIdx(config.sheetStartDateColumn) - 2
+    locationIdx + letterToColumnIdx(config.sheetStartDateColumn) - 1
   );
 
   console.log(

@@ -17,7 +17,7 @@ export type GroupMessage = {
 const GMArray: GroupMessage[] = GMObjct.GMArray as GroupMessage[];
 
 async function main() {
-  console.log("Last updated: 30-12-2023");
+  console.log("Last updated: 02-01-2024");
   console.log(config);
   const whatsappClient: Client = await connectToWhatsapp();
 
